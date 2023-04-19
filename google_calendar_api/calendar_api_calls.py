@@ -12,7 +12,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-CACHE_DURATION = 5
+CACHE_DURATION = 360
 
 
 def get_credentials():
@@ -113,6 +113,37 @@ def get_today_events():
         print('An error occurred: %s' % error)
 
     return json.dumps(event_list)
+
+
+def add_event():
+    """
+    Adds an event to the user's primary calendar.
+    """
+
+    creds = get_credentials()
+
+    service = build('calendar', 'v3', credentials=creds)
+
+    event = {
+        'summary': 'Google I/O 2015',
+        'location': '800 Howard St., San Francisco, CA 94103',
+        'description': 'A chance to hear more about Google\'s developer products.',
+        'start': {
+            'dateTime': '2023-05-28T09:00:00-07:00',
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+            'dateTime': '2023-05-28T17:00:00-07:00',
+            'timeZone': 'America/Los_Angeles',
+        },
+        'attendees': [
+            {'email': 'lpage@example.com'},
+            {'email': 'sbrin@example.com'},
+        ]
+    }
+
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print('Event created: %s' % (event.get('htmlLink')))
 
 
 if __name__ == '__main__':
