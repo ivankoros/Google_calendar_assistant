@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import datetime
 import os.path
+import json
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -48,6 +49,7 @@ def get_today_events():
     """
 
     creds = get_credentials()
+    event_list = []
 
     try:
         service = build('calendar', 'v3', credentials=creds)
@@ -72,7 +74,6 @@ def get_today_events():
 
         # Prints the start and name of the next 10 events
 
-        event_list = []
         for event in events:
             start = event['start'].get('dateTime', event['start'].get('date'))
             start_time_obj = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z')
@@ -90,7 +91,8 @@ def get_today_events():
     except HttpError as error:
         print('An error occurred: %s' % error)
 
-    return event_list
+    return json.dumps(event_list)
+
 
 if __name__ == '__main__':
     get_today_events()
