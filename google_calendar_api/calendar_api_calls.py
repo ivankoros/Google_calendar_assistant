@@ -3,12 +3,16 @@ from __future__ import print_function
 import datetime
 import os.path
 import json
+import pickle
+import time
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+CACHE_DURATION = 1800 # 30 minutes
 
 
 def get_credentials():
@@ -20,8 +24,8 @@ def get_credentials():
     """
 
     scopes = ['https://www.googleapis.com/auth/calendar.readonly']
-
     creds = None
+
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
@@ -51,6 +55,14 @@ def get_today_events():
     creds = get_credentials()
     event_list = []
 
+    cache_file = "events_cache.pkl"
+    if os.path.exists(cache_file):
+        with open(cache_file, "rb") as f:
+            cache_data = pickle.load(f)
+            if time.time() - cache_data["timestamp"] < CACHE_DURATION:
+                print("Using cached data.")
+                return json.dumps(cache_data["event_list"])
+
     try:
         service = build('calendar', 'v3', credentials=creds)
 
@@ -65,6 +77,14 @@ def get_today_events():
 
         print('Getting today\'s events')
         events_results = service.events().list(calendarId='primary', timeMin=start, timeMax=end, singleEvents=True, orderBy='startTime', timeZone=time_zone).execute()
+
+        cache_data = {
+            "timestamp": time.time(),
+            "event_list": event_list
+        }
+
+        with open(cache_file, "wb") as f:
+            pickle.dump(cache_data, f)
 
         events = events_results.get('items', [])
 
