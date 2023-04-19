@@ -12,7 +12,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-CACHE_DURATION = 1800 # 30 minutes
+CACHE_DURATION = 5
 
 
 def get_credentials():
@@ -78,14 +78,6 @@ def get_today_events():
         print('Getting today\'s events')
         events_results = service.events().list(calendarId='primary', timeMin=start, timeMax=end, singleEvents=True, orderBy='startTime', timeZone=time_zone).execute()
 
-        cache_data = {
-            "timestamp": time.time(),
-            "event_list": event_list
-        }
-
-        with open(cache_file, "wb") as f:
-            pickle.dump(cache_data, f)
-
         events = events_results.get('items', [])
 
         if not events:
@@ -106,7 +98,16 @@ def get_today_events():
             end_time = local_time.strftime('%I:%M %p')
 
             event_list.append((start_time, end_time, event['summary']))
-            print(f"{start_time} - {end_time} {event['summary']}")
+
+        print(event_list)
+
+        cache_data = {
+            "timestamp": time.time(),
+            "event_list": event_list
+        }
+
+        with open(cache_file, "wb") as f:
+            pickle.dump(cache_data, f)
 
     except HttpError as error:
         print('An error occurred: %s' % error)
