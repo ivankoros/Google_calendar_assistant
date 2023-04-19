@@ -24,23 +24,28 @@ def get_credentials():
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', scopes)
+    if os.path.exists('../token.json'):
+        creds = Credentials.from_authorized_user_file('../token.json', scopes)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                '../credentials.json', scopes)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open('token.json', 'w') as token:
+        with open('../token.json', 'w') as token:
             token.write(creds.to_json())
     return creds
 
 
 def get_today_events():
+    """
+    Gets all of today's events from the user's primary calendar.
+
+    :return: A list of tuples containing the start time, end time, and summary of each event (the event's name)
+    """
 
     creds = get_credentials()
 
@@ -66,6 +71,8 @@ def get_today_events():
             return
 
         # Prints the start and name of the next 10 events
+
+        event_list = []
         for event in events:
             start = event['start'].get('dateTime', event['start'].get('date'))
             start_time_obj = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S%z')
@@ -77,11 +84,13 @@ def get_today_events():
             local_time = end_time_obj.astimezone()
             end_time = local_time.strftime('%I:%M %p')
 
+            event_list.append((start_time, end_time, event['summary']))
             print(f"{start_time} - {end_time} {event['summary']}")
 
     except HttpError as error:
         print('An error occurred: %s' % error)
 
+    return event_list
 
 if __name__ == '__main__':
     get_today_events()
