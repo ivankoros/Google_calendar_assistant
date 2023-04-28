@@ -15,6 +15,33 @@ from googleapiclient.errors import HttpError
 CACHE_DURATION = 360
 
 
+class Event:
+    def __init__(self, summary, location, description, start, end, attendees=None, timeZone=None):
+        self.summary = summary
+        self.location = location
+        self.description = description
+        self.start = start
+        self.end = end
+        self.attendees = attendees if attendees is not None else []
+        self.timeZone = timeZone
+
+    def to_dict(self):
+        event_dict = {
+            'summary': self.summary,
+            'location': self.location,
+            'description': self.description,
+            'start': {
+                'dateTime': self.start,
+                'timeZone': self.timeZone,
+            },
+            'end': {
+                'dateTime': self.end,
+                'timeZone': self.timeZone,
+            },
+            'attendees': [{'email': attendee} for attendee in self.attendees],
+        }
+        return event_dict
+
 def get_credentials():
     """Gets valid user credentials from storage.
     If nothing has been stored, or if the stored credentials are invalid,
