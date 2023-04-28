@@ -158,3 +158,13 @@ def add_event(new_event):
 
 if __name__ == '__main__':
     get_today_events()
+    sample_event = Event(
+        summary='Google I/O 2015',
+        location='800 Howard St., San Francisco, CA 94103',
+        description="A chance to hear more about Google's developer products.",
+        start='2023-05-28T09:00:00-07:00',
+        end='2023-05-28T17:00:00-07:00',
+        attendees=['lpage@example.com', 'sbrin@example.com'],
+        timeZone='America/Los_Angeles',
+    )
+    add_event(sample_event)
